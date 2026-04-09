@@ -3,6 +3,7 @@ import numpy as np
 import subprocess
 import requests
 import json
+import pyttsx3
 
 import tempfile
 import os
@@ -17,7 +18,11 @@ DURACAO_GRAVACAO = 5  # segundos
 
 # Carrega o Whisper (na primeira vez faz download do modelo)
 print("Carregando Whisper...")
-stt = WhisperModel("small", device="cpu", compute_type="int8")
+stt = WhisperModel(
+    r"C:\whisper-models\base",
+    device="cpu",
+    compute_type="int8"
+)
 
 historico = []
 
@@ -48,7 +53,7 @@ def transcrever(audio):
 def perguntar_llm(mensagem):
     historico.append({"role": "user", "content": mensagem})
     resp = requests.post("http://localhost:11434/api/chat", json={
-        "model": OLLAMA_MODEL,
+        "model": "mistral",
         "messages": historico,
         "stream": False
     })
@@ -61,16 +66,12 @@ def perguntar_llm(mensagem):
     historico.append({"role": "assistant", "content": resposta})
     return resposta
 
+engine = pyttsx3.init()
+
 def falar(texto):
-    print(f"🔊 {texto}")
-    proc = subprocess.Popen(
-        [PIPER_EXE, "--model", PIPER_MODEL, "--output-raw"],
-        stdin=subprocess.PIPE, stdout=subprocess.PIPE
-    )
-    audio_raw, _ = proc.communicate(input=texto.encode("utf-8"))
-    audio_np = np.frombuffer(audio_raw, dtype=np.int16).astype(np.float32) / 32768
-    sd.play(audio_np, samplerate=22050)
-    sd.wait()
+    print("Jarvis:", texto)
+    engine.say(texto)
+    engine.runAndWait()
 
 # Loop principal
 print("✅ Assistente pronto! Pressione Enter para falar, Ctrl+C para sair.\n")
