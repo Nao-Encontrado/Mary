@@ -1,24 +1,39 @@
-import os
 import sounddevice as sd
 import numpy as np
 import subprocess
 import requests
 import json
-
 import tempfile
+import os
+import sys
+import platform
 from faster_whisper import WhisperModel
 
-# Configurações
-PIPER_EXE = "/usr/local/bin/piper/piper"
-PIPER_MODEL = "/usr/local/bin/piper/pt_BR-faber-medium.onnx"
+# Detecta o sistema operacional
+SO = platform.system()  # 'Windows', 'Linux' ou 'Darwin' (Mac)
+
+if SO == "Windows":
+    PIPER_EXE = r"C:\piper\piper.exe"
+    PIPER_MODEL = r"C:\piper\pt_BR-faber-medium.onnx"
+    WHISPER_MODEL_PATH = r"C:\whisper-models\tiny"
+elif SO == "Linux":
+    PIPER_EXE = "/usr/local/bin/piper/piper"
+    PIPER_MODEL = "/usr/local/bin/piper/pt_BR-faber-medium.onnx"
+    WHISPER_MODEL_PATH = os.path.expanduser("~/whisper-models/tiny")
+elif SO == "Darwin":  # Mac
+    PIPER_EXE = "/usr/local/bin/piper/piper"
+    PIPER_MODEL = "/usr/local/bin/piper/pt_BR-faber-medium.onnx"
+    WHISPER_MODEL_PATH = os.path.expanduser("~/whisper-models/tiny")
+
 OLLAMA_MODEL = "mistral"
 SAMPLE_RATE = 16000
-DURACAO_GRAVACAO = 5  # segundos
+DURACAO_GRAVACAO = 5
 
-# Carrega o Whisper (na primeira vez faz download do modelo)
+print(f"Sistema detectado: {SO}")
 print("Carregando Whisper...")
+
 stt = WhisperModel(
-    os.path.expanduser("~/whisper-models/tiny"),
+    WHISPER_MODEL_PATH,
     device="cpu",
     compute_type="int8"
 )
